@@ -1,0 +1,45 @@
+#!/bin/bash
+
+echo "🧪 API Testing Guide"
+echo "===================="
+echo ""
+
+echo "✅ Zyla API Status: WORKING"
+echo "   - Successfully tested with HTTP URL"
+echo "   - Returns comprehensive skin analysis"
+echo "   - Requires publicly accessible image URLs"
+echo ""
+
+echo "🔗 Test Pages:"
+echo "   - Zyla API Test: http://localhost:3002/zyla-test"
+echo "   - OpenRouter Claude Test: http://localhost:3002/openrouter-test"
+echo ""
+
+echo "📋 How to Test Zyla API:"
+echo "1. Go to http://localhost:3002/zyla-test"
+echo "2. Either:"
+echo "   - Upload an image file (will show error about base64)"
+echo "   - Paste a public image URL (recommended)"
+echo "3. Click 'Analyze Skin'"
+echo "4. View results and raw API data"
+echo ""
+
+echo "📋 How to Test OpenRouter Claude API:"
+echo "1. Go to http://localhost:3002/openrouter-test"
+echo "2. Upload any image file"
+echo "3. Click 'Analyze with Claude 4.5'"
+echo "4. View comprehensive facial analysis"
+echo ""
+
+echo "🔧 For Zyla API Testing:"
+echo "   Use public image URLs like:"
+echo "   - https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"
+echo "   - https://via.placeholder.com/400x400"
+echo "   - Any publicly accessible image URL"
+echo ""
+
+echo "⚠️  Important Notes:"
+echo "   - Zyla API requires HTTP/HTTPS URLs (not base64)"
+echo "   - OpenRouter Claude accepts both base64 and HTTP URLs"
+echo "   - Both APIs are working correctly"
+echo "   - Check browser console and terminal for detailed logs"

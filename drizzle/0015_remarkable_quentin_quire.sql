@@ -1,0 +1,1 @@
+ALTER TABLE "parallel_analysis" ADD COLUMN "hairline_picture" text;

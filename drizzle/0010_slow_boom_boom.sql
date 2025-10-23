@@ -1,0 +1,1 @@
+ALTER TABLE "parallel_analysis_sections" ADD COLUMN "image" text;

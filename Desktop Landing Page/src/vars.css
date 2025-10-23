@@ -1,0 +1,16 @@
+/* Figma Styles of your File */:root {
+  /* Colors */
+  /* Fonts */
+  /* Effects */
+
+}
+/* Figma Color Variables of your File */:root, [data-variable-collection-mode=mode-1] {
+  /* mode-1 - Venus Theme */
+  --parallel-main: #89216b;
+  --parallel-fade-grey: rgba(137, 33, 107, 0.16);
+  --parallel-blue: #c0c7d4;
+  --venus-gradient-start: #da4453;
+  --venus-gradient-end: #89216b;
+  --parallel-gradient: linear-gradient(90deg, #da4453 0%, #b73355 33%, #9c2958 66%, #89216b 100%);
+}
+

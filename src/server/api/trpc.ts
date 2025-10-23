@@ -1,0 +1,235 @@
+/**
+ * YOU PROBABLY DON'T NEED TO EDIT THIS FILE, UNLESS:
+ * 1. You want to modify request context (see Part 1).
+ * 2. You want to create a new middleware or type of procedure (see Part 3).
+ *
+ * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
+ * need to use are documented accordingly near the end.
+ */
+import { initTRPC, TRPCError } from "@trpc/server";
+import superjson from "superjson";
+import { ZodError } from "zod";
+
+import { db } from "~/server/db";
+import { auth } from "~/server/utils/auth";
+
+/**
+ * 1. CONTEXT
+ *
+ * This section defines the "contexts" that are available in the backend API.
+ *
+ * These allow you to access things when processing a request, like the database, the session, etc.
+ *
+ * This helper generates the "internals" for a tRPC context. The API handler and RSC clients each
+ * wrap this and provides the required context.
+ *
+ * @see https://trpc.io/docs/server/context
+ */
+export const createTRPCContext = async (opts: { headers: Headers }) => {
+  // Production debugging for session issues
+  if (process.env.NODE_ENV === "production") {
+    console.log("[TRPC] Creating context with headers:", {
+      hasCookie: !!opts.headers.get("cookie"),
+      cookieLength: opts.headers.get("cookie")?.length || 0,
+      userAgent: opts.headers.get("user-agent")?.substring(0, 50) || "none",
+    });
+  }
+
+  const session = await auth.api.getSession({
+    headers: opts.headers,
+  });
+
+  // Production debugging for session results
+  if (process.env.NODE_ENV === "production") {
+    console.log("[TRPC] Session result:", {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userId: session?.user?.id || "none",
+      sessionId: session?.session?.id || "none",
+    });
+  }
+
+  const user = session?.user.id
+    ? await db.query.user.findFirst({
+        where: (user, { eq }) => eq(user.id, session.user.id),
+      })
+    : null;
+
+  return {
+    db,
+    session,
+    user,
+    ...opts,
+  };
+};
+
+/**
+ * 2. INITIALIZATION
+ *
+ * This is where the tRPC API is initialized, connecting the context and transformer. We also parse
+ * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
+ * errors on the backend.
+ */
+const t = initTRPC.context<typeof createTRPCContext>().create({
+  transformer: superjson,
+  errorFormatter({ shape, error }) {
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        zodError:
+          error.cause instanceof ZodError ? error.cause.flatten() : null,
+      },
+    };
+  },
+});
+
+/**
+ * Create a server-side caller.
+ *
+ * @see https://trpc.io/docs/server/server-side-calls
+ */
+export const createCallerFactory = t.createCallerFactory;
+
+/**
+ * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
+ *
+ * These are the pieces you use to build your tRPC API. You should import these a lot in the
+ * "/src/server/api/routers" directory.
+ */
+
+/**
+ * This is how you create new routers and sub-routers in your tRPC API.
+ *
+ * @see https://trpc.io/docs/router
+ */
+export const createTRPCRouter = t.router;
+
+/**
+ * Middleware for timing procedure execution and adding an artificial delay in development.
+ *
+ * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
+ * network latency that would occur in production but not in local development.
+ */
+const timingMiddleware = t.middleware(async ({ next, path }) => {
+  const start = Date.now();
+
+  if (t._config.isDev) {
+    // artificial delay in dev
+    const waitMs = Math.floor(Math.random() * 400) + 100;
+    await new Promise((resolve) => setTimeout(resolve, waitMs));
+  }
+
+  const result = await next();
+
+  const end = Date.now();
+  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
+
+  return result;
+});
+
+/**
+ * Public (unauthenticated) procedure
+ *
+ * This is the base piece you use to build new queries and mutations on your tRPC API. It does not
+ * guarantee that a user querying is authorized, but you can still access user session data if they
+ * are logged in.
+ */
+export const publicProcedure = t.procedure.use(timingMiddleware);
+
+/**
+ * Protected (authenticated) procedure
+ *
+ * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
+ * the session is valid and guarantees `ctx.session.user` is not null.
+ */
+export const protectedProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(({ ctx, next }) => {
+    if (!ctx.session?.user) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+    return next({
+      ctx: {
+        ...ctx,
+        // infers the `session` as non-nullable
+        session: { ...ctx.session, user: ctx.session.user },
+      },
+    });
+  });
+
+/**
+ * Subscribed (authenticated) procedure
+ *
+ * If you want a query or mutation to ONLY be accessible to logged in users with an active subscription, use this.
+ */
+export const subscribedProcedure = protectedProcedure.use(
+  async ({ ctx, next }) => {
+    // Check if user has an active subscription
+    const activeSubscription = await ctx.db.query.subscription.findFirst({
+      where: (subscription, { eq, and }) =>
+        and(
+          eq(subscription.referenceId, ctx.session.user.id),
+          eq(subscription.status, "active"),
+        ),
+    });
+
+    if (!activeSubscription) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Active subscription required",
+      });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        subscription: activeSubscription,
+      },
+    });
+  },
+);
+
+/**
+ * Admin (authenticated) procedure
+ *
+ * If you want a query or mutation to ONLY be accessible to logged in users with an admin role, use this.
+ */
+export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  if (ctx.user?.role !== "admin") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You are not authorized to access this resource",
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      role: ctx.user?.role,
+    },
+  });
+});
+
+/**
+ * Reviewer (authenticated) procedure
+ *
+ * If you want a query or mutation to ONLY be accessible to logged in users with a reviewer+ role, use this.
+ */
+export const reviewerProcedure = protectedProcedure.use(
+  async ({ ctx, next }) => {
+    if (ctx.user?.role !== "admin" && ctx.user?.role !== "reviewer") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You are not authorized to access this resource",
+      });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        role: ctx.user?.role,
+      },
+    });
+  },
+);

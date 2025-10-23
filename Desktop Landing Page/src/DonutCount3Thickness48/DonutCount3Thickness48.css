@@ -1,0 +1,12 @@
+.donut-count-3-thickness-48,
+.donut-count-3-thickness-48 * {
+  box-sizing: border-box;
+}
+.donut-count-3-thickness-48 {
+  flex-shrink: 0;
+  width: 112px;
+  height: 112px;
+  position: relative;
+  overflow: visible;
+  aspect-ratio: 1;
+}

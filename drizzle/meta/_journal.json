@@ -1,0 +1,139 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1753733006888,
+      "tag": "0000_tired_infant_terrible",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1753733674752,
+      "tag": "0001_rapid_anthem",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1753839602311,
+      "tag": "0002_gray_terror",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1753840648925,
+      "tag": "0003_clever_spot",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1753841484604,
+      "tag": "0004_redundant_polaris",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1753911088185,
+      "tag": "0005_legal_preak",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1754007995059,
+      "tag": "0006_uneven_bullseye",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1754852492080,
+      "tag": "0007_optimal_karen_page",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1755040527217,
+      "tag": "0008_watery_shriek",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1755400612130,
+      "tag": "0009_new_medusa",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1755406432077,
+      "tag": "0010_slow_boom_boom",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1755408064872,
+      "tag": "0011_tense_jackpot",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1755920922928,
+      "tag": "0012_polite_thanos",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1756609566467,
+      "tag": "0013_worried_pixie",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1756625581039,
+      "tag": "0014_steep_black_crow",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1758502159742,
+      "tag": "0015_remarkable_quentin_quire",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1759426933103,
+      "tag": "0016_swift_ricochet",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1760922118220,
+      "tag": "0017_purple_rockslide",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1760924514126,
+      "tag": "0018_blue_mongoose",
+      "breakpoints": true
+    }
+  ]
+}

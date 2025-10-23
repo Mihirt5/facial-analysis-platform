@@ -1,0 +1,11 @@
+.semicircle-style-2-thickness-64,
+.semicircle-style-2-thickness-64 * {
+  box-sizing: border-box;
+}
+.semicircle-style-2-thickness-64 {
+  width: 92px;
+  height: 46px;
+  position: relative;
+  overflow: visible;
+  aspect-ratio: 2/1;
+}

@@ -1,0 +1,9 @@
+.frame-1-states-default,
+.frame-1-states-default * {
+  box-sizing: border-box;
+}
+.frame-1-states-default {
+  height: 814px;
+  position: relative;
+  overflow: visible;
+}

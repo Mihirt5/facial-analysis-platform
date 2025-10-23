@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TensorFlow Face Landmarks Test</title>
+</head>
+<body>
+    <h1>TensorFlow Face Landmarks Detection Test</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    <canvas id="canvas" width="400" height="400"></canvas>
+    <div id="output"></div>
+
+    <script src="/parallellabs/tf-core.js"></script>
+    <script src="/parallellabs/tf-converter.js"></script>
+    <script src="/parallellabs/tf-backend-cpu.js"></script>
+    <script src="/parallellabs/face-landmarks-detection.js"></script>
+
+    <script>
+        async function testFaceLandmarks() {
+            try {
+                console.log('Loading TensorFlow...');
+                await tf.ready();
+                console.log('TensorFlow ready');
+
+                console.log('Loading face landmarks detection...');
+                const model = await faceLandmarksDetection.load(
+                    faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
+                    { maxFaces: 1 }
+                );
+                console.log('Model loaded');
+
+                const imageInput = document.getElementById('imageInput');
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext('2d');
+                const output = document.getElementById('output');
+
+                imageInput.addEventListener('change', async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    const img = new Image();
+                    img.onload = async () => {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+
+                        try {
+                            console.log('Running face detection...');
+                            const predictions = await model.estimateFaces({ input: img });
+                            console.log('Predictions:', predictions);
+
+                            if (predictions.length > 0) {
+                                const face = predictions[0];
+                                console.log('Face object:', face);
+                                console.log('Face annotations:', face.annotations);
+                                console.log('Annotation keys:', Object.keys(face.annotations));
+
+                                // Log each annotation
+                                for (const [key, value] of Object.entries(face.annotations)) {
+                                    console.log(`${key}:`, value);
+                                    if (Array.isArray(value) && value.length > 0) {
+                                        console.log(`${key} first point:`, value[0]);
+                                    }
+                                }
+
+                                output.innerHTML = `
+                                    <h3>Face Detection Results:</h3>
+                                    <p>Number of faces: ${predictions.length}</p>
+                                    <p>Annotation keys: ${Object.keys(face.annotations).join(', ')}</p>
+                                    <pre>${JSON.stringify(face.annotations, null, 2)}</pre>
+                                `;
+                            } else {
+                                output.innerHTML = '<p>No faces detected</p>';
+                            }
+                        } catch (error) {
+                            console.error('Error during face detection:', error);
+                            output.innerHTML = `<p>Error: ${error.message}</p>`;
+                        }
+                    };
+                    img.src = URL.createObjectURL(file);
+                });
+
+            } catch (error) {
+                console.error('Error loading models:', error);
+                document.getElementById('output').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+
+        testFaceLandmarks();
+    </script>
+</body>
+</html>

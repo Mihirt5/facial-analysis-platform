@@ -1,0 +1,11 @@
+# Add these to your .env or .env.local file for morph functionality
+
+# Replicate API (for Qwen Image Edit Plus - PRIMARY)
+# Get your token at: https://replicate.com/account/api-tokens
+REPLICATE_API_TOKEN=r8_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# OpenAI API (legacy, not currently used)
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+

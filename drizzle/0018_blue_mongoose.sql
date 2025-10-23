@@ -1,0 +1,1 @@
+ALTER TABLE "parallel_recommendations" ADD CONSTRAINT "parallel_recommendations_analysis_id_unique" UNIQUE("analysis_id");

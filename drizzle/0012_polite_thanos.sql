@@ -1,0 +1,1 @@
+ALTER TABLE "parallel_analysis" DROP COLUMN "status";

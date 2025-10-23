@@ -1,0 +1,1 @@
+ALTER TABLE "parallel_analysis" ADD COLUMN "status" text DEFAULT 'in_progress' NOT NULL;
