@@ -101,11 +101,64 @@ const MetricBox = ({ title, value, subtitle, severity, description, trend, icon,
   );
 };
 
-const SimpleChart = ({ data, type = 'bar' }: { data: { label: string; value: number; color?: string }[], type?: 'bar' | 'line' }) => {
+const SimpleChart = ({ data, type = 'bar', title }: { data: { label: string; value: number; color?: string }[], type?: 'bar' | 'line' | 'radial', title?: string }) => {
   const maxValue = Math.max(...data.map(d => d.value));
+  
+  if (type === 'radial') {
+    return (
+      <div className="space-y-3">
+        {title && <h4 className="text-sm font-semibold text-gray-700">{title}</h4>}
+        <div className="grid grid-cols-2 gap-3">
+          {data.map((item, index) => {
+            const percentage = (item.value / maxValue) * 100;
+            const circumference = 2 * Math.PI * 20; // radius = 20
+            const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
+            
+            return (
+              <div key={index} className="flex items-center gap-2">
+                <div className="relative w-12 h-12">
+                  <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 44 44">
+                    <circle
+                      cx="22"
+                      cy="22"
+                      r="20"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      fill="none"
+                      className="text-gray-200"
+                    />
+                    <circle
+                      cx="22"
+                      cy="22"
+                      r="20"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      fill="none"
+                      strokeDasharray={strokeDasharray}
+                      strokeLinecap="round"
+                      className="transition-all duration-500"
+                      style={{ color: item.color || '#3b82f6' }}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xs font-semibold text-gray-600">{Math.round(percentage)}%</span>
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-gray-800 truncate">{item.label}</p>
+                  <p className="text-xs text-gray-500">{item.value}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-2">
+      {title && <h4 className="text-sm font-semibold text-gray-700">{title}</h4>}
       {data.map((item, index) => (
         <div key={index} className="flex items-center gap-3">
           <div className="w-16 text-xs text-gray-600 truncate">{item.label}</div>
@@ -131,23 +184,46 @@ const AnalysisVisualization = ({ analysis }: { analysis: AnalysisRecord }) => {
     
     return (
       <div className="space-y-6">
-        {/* Overall Score Card */}
-        {analysis.data.overallScore && (
-          <Card className="border-0 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg">
-            <CardContent className="p-8 text-center">
-              <div className="text-6xl font-bold text-blue-600 mb-2">
-                {analysis.data.overallScore}
-                <span className="text-3xl text-gray-500">/100</span>
-              </div>
-              <p className="text-lg text-gray-700 italic">{analysis.data.overallSummary}</p>
-              <div className="mt-4 flex justify-center">
-                <Badge className="bg-blue-100 text-blue-800 px-4 py-2 text-sm">
-                  Overall Skin Health Score
+        {/* Hero Section with Image and Overall Score */}
+        <Card className="border-0 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            {/* Image Section */}
+            <div className="relative h-64 lg:h-auto">
+              {analysis.imageUrl && (
+                <img
+                  src={analysis.imageUrl}
+                  alt="Analyzed Face"
+                  className="w-full h-full object-cover"
+                />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              <div className="absolute bottom-4 left-4 text-white">
+                <Badge className="bg-white/20 text-white border-white/30">
+                  <Zap className="w-3 h-3 mr-1" />
+                  Zyla Analysis
                 </Badge>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+            
+            {/* Score Section */}
+            <div className="p-8 flex flex-col justify-center text-center">
+              {analysis.data.overallScore && (
+                <>
+                  <div className="text-6xl font-bold text-blue-600 mb-2">
+                    {analysis.data.overallScore}
+                    <span className="text-3xl text-gray-500">/100</span>
+                  </div>
+                  <p className="text-lg text-gray-700 italic mb-4">{analysis.data.overallSummary}</p>
+                  <div className="flex justify-center">
+                    <Badge className="bg-blue-100 text-blue-800 px-4 py-2 text-sm">
+                      Overall Skin Health Score
+                    </Badge>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </Card>
 
         {/* Key Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -167,6 +243,7 @@ const AnalysisVisualization = ({ analysis }: { analysis: AnalysisRecord }) => {
                     { label: 'Severity', value: skinData.lesions.severity_percentage * 100, color: '#f97316' },
                     { label: 'Confidence', value: skinData.lesions.confidence * 100, color: '#22c55e' }
                   ]}
+                  title="Acne Metrics"
                 />
               }
             />
@@ -189,6 +266,7 @@ const AnalysisVisualization = ({ analysis }: { analysis: AnalysisRecord }) => {
                     value: data.wrinkle_score * 100,
                     color: data.severity === 'severe' ? '#ef4444' : data.severity === 'moderate' ? '#f97316' : '#22c55e'
                   }))}
+                  title="Regional Wrinkle Scores"
                 />
               }
             />
@@ -210,6 +288,7 @@ const AnalysisVisualization = ({ analysis }: { analysis: AnalysisRecord }) => {
                     value: data.density,
                     color: data.severity === 'high' ? '#ef4444' : data.severity === 'moderate' ? '#f97316' : '#22c55e'
                   }))}
+                  title="Pore Density by Region"
                 />
               }
             />
@@ -231,6 +310,7 @@ const AnalysisVisualization = ({ analysis }: { analysis: AnalysisRecord }) => {
                     value: data.density,
                     color: data.severity === 'none' ? '#22c55e' : '#f97316'
                   }))}
+                  title="Pigmentation Density"
                 />
               }
             />
@@ -245,6 +325,16 @@ const AnalysisVisualization = ({ analysis }: { analysis: AnalysisRecord }) => {
               severity="good"
               description={`Detected skin type with texture score of ${skinData.skin_type.texture_score}`}
               icon={<Activity className="w-5 h-5 text-green-500" />}
+              chart={
+                <SimpleChart 
+                  data={[
+                    { label: 'Confidence', value: skinData.skin_type.confidence * 100, color: '#22c55e' },
+                    { label: 'Texture Score', value: Math.min(skinData.skin_type.texture_score / 1000, 100), color: '#3b82f6' }
+                  ]}
+                  type="radial"
+                  title="Skin Type Metrics"
+                />
+              }
             />
           )}
 
@@ -264,33 +354,89 @@ const AnalysisVisualization = ({ analysis }: { analysis: AnalysisRecord }) => {
                     value: score * 100,
                     color: score > 0.6 ? '#ef4444' : score > 0.3 ? '#f97316' : '#22c55e'
                   }))}
+                  title="Component Severity Scores"
                 />
               }
             />
           )}
         </div>
 
-        {/* Image Quality Warning */}
-        {skinData.quality && skinData.quality.overall_quality === 'poor' && (
-          <Card className="border-orange-200 bg-orange-50">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-orange-600 mt-0.5" />
-                <div>
-                  <h4 className="font-semibold text-orange-800 mb-1">Image Quality Warning</h4>
-                  <p className="text-sm text-orange-700 mb-2">
-                    Quality Score: {skinData.quality.quality_score}/1.0 - Analysis may be less reliable
-                  </p>
-                  <ul className="text-xs text-orange-600 space-y-1">
-                    {skinData.quality.warnings?.map((warning: string, index: number) => (
-                      <li key={index}>• {warning}</li>
-                    ))}
-                  </ul>
+        {/* Comprehensive Analysis Summary */}
+        <Card className="border-0 bg-gradient-to-r from-gray-50 to-blue-50 shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <BarChart3 className="w-6 h-6 text-blue-600" />
+              Analysis Summary & Insights
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Quality Metrics */}
+              {skinData.quality && (
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-800">Image Quality Assessment</h4>
+                  <SimpleChart 
+                    data={[
+                      { label: 'Blur Score', value: skinData.quality.blur_score * 100, color: skinData.quality.blur_score > 0.8 ? '#ef4444' : '#22c55e' },
+                      { label: 'Exposure Score', value: skinData.quality.exposure_score * 100, color: skinData.quality.exposure_score < 0.3 ? '#f97316' : '#22c55e' },
+                      { label: 'Contrast Score', value: skinData.quality.contrast_score * 100, color: skinData.quality.contrast_score < 0.3 ? '#f97316' : '#22c55e' },
+                      { label: 'Overall Quality', value: skinData.quality.quality_score * 100, color: skinData.quality.quality_score < 0.5 ? '#ef4444' : '#22c55e' }
+                    ]}
+                    title="Quality Metrics"
+                  />
+                  {skinData.quality.overall_quality === 'poor' && (
+                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-orange-600 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-orange-800">Quality Warning</p>
+                          <ul className="text-xs text-orange-600 space-y-1 mt-1">
+                            {skinData.quality.warnings?.map((warning: string, index: number) => (
+                              <li key={index}>• {warning}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Regional Analysis */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-800">Regional Analysis Overview</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  {skinData.face_regions && Object.entries(skinData.face_regions).map(([region, coords]: [string, any]) => (
+                    <div key={region} className="p-3 bg-white rounded-lg border border-gray-200">
+                      <h5 className="text-sm font-medium text-gray-800 capitalize mb-2">{region.replace('_', ' ')}</h5>
+                      <div className="text-xs text-gray-600">
+                        <p>Coordinates: {coords.join(', ')}</p>
+                        {skinData.wrinkles?.[region] && (
+                          <p className="mt-1">
+                            Wrinkles: {skinData.wrinkles[region].severity} 
+                            <span className="ml-1 text-xs">({Math.round(skinData.wrinkles[region].wrinkle_score * 100)}%)</span>
+                          </p>
+                        )}
+                        {skinData.pores?.[region] && (
+                          <p className="mt-1">
+                            Pores: {skinData.pores[region].count} 
+                            <span className="ml-1 text-xs">({skinData.pores[region].density}/10k pixels)</span>
+                          </p>
+                        )}
+                        {skinData.pigmentation?.[region] && (
+                          <p className="mt-1">
+                            Spots: {skinData.pigmentation[region].spot_count}
+                            <span className="ml-1 text-xs">({skinData.pigmentation[region].density}/10k pixels)</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -298,11 +444,51 @@ const AnalysisVisualization = ({ analysis }: { analysis: AnalysisRecord }) => {
   if (analysis.analysisType === 'openrouter') {
     return (
       <div className="space-y-6">
+        {/* Hero Section with Image */}
+        <Card className="border-0 bg-gradient-to-r from-purple-50 to-indigo-50 shadow-lg overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            {/* Image Section */}
+            <div className="relative h-64 lg:h-auto">
+              {analysis.imageUrl && (
+                <img
+                  src={analysis.imageUrl}
+                  alt="Analyzed Face"
+                  className="w-full h-full object-cover"
+                />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              <div className="absolute bottom-4 left-4 text-white">
+                <Badge className="bg-white/20 text-white border-white/30">
+                  <Brain className="w-3 h-3 mr-1" />
+                  GPT-5 Analysis
+                </Badge>
+              </div>
+            </div>
+            
+            {/* Analysis Summary */}
+            <div className="p-8 flex flex-col justify-center">
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-purple-600 mb-4">Comprehensive Facial Analysis</h3>
+                <p className="text-gray-700 mb-4">
+                  Advanced AI analysis across 7 key categories including facial structure, 
+                  skin analysis, feature evaluation, and more.
+                </p>
+                <div className="flex justify-center">
+                  <Badge className="bg-purple-100 text-purple-800 px-4 py-2 text-sm">
+                    <Brain className="w-3 h-3 mr-1" />
+                    GPT-5 Powered
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+
         {/* GPT-5 Analysis Categories */}
         {analysis.data.analysis && typeof analysis.data.analysis === 'object' ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {Object.entries(analysis.data.analysis).map(([category, content]) => (
-              <Card key={category} className="shadow-sm">
+              <Card key={category} className="shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <Brain className="w-5 h-5 text-purple-600" />
